@@ -1,0 +1,8 @@
+#!/bin/bash
+
+/etc/init.d/mysql restart
+mysql -h127.0.0.1 -uroot -Ne "GRANT ALL PRIVILEGES ON *.* TO 'dev'@'%'; FLUSH PRIVILEGES";
+
+while [ true ]; do
+	sleep 365d
+done
