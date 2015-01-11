@@ -36,54 +36,52 @@ tasks:
 
                 docker.image:
                     post:
-                        - ?(image == "varnish") cp etc/varnish/default.vcl >> $(docker.image_dir)/etc/varnish/default.vcl
-        set:
-            image: ? "ALL"
-        unless: image != "ALL" && is_dir(docker.image_dir . "/" . image)
+                        - @(if image == "varnish") cp etc/varnish/default.vcl >> $(docker.image_dir)/etc/varnish/default.vcl
+        args:
+            image[]: ? docker.containers
         pre:
             - '[ -d $(docker.image_dir) ] || mkdir $(docker.image_dir)'
         do:
-            - ?(image == "ALL") for d in $(docker.containers); do z $(z.opts) docker:image $d; done;
-            - ?(image != "ALL") cp -rv $(docker.image_source)/$(image) $(docker.image_dir)/$(image)
+            - @(each image) @(if FORCE || !is_dir(cat(docker.image_dir, "/", _value))) cp -rv $(docker.image_source)/$(_value) $(docker.image_dir)/$(_value)
 
     docker.rebuild:
         help: |
             Rebuild images from the image source files
 
             You can pass the --force to force the images to be recopied.
-        set: { image: ? "ALL" }
+        args:
+            image[]: ? docker.containers
         pre:
-            - ?(image != "ALL") @docker.image
+            - @docker.image
         do:
-            - ?(image == "ALL") set -e; for d in $(docker.containers); do z $(z.opts) docker:rebuild $d; done;
-            - ?(image != "ALL") $(docker.cmd) build -t $(image) $(docker.image_dir)/$(image);
+            - @(each image) $(docker.cmd) build -t $(_value) $(docker.image_dir)/$(_value);
 
     docker.restart:
-        set:
+        args:
             container: ? "ALL"
         do:
             - |
-                ?(container == "ALL")
+                @(if container == "ALL")
                     set -e;                                     \
                     for d in $(docker.containers); do           \
                         z $(z.opts) docker:rebuild $d;          \
                         z $(z.opts) docker:restart $d;          \
                     done;
-            - ?(container != "ALL") @docker.kill
-            - ?(container != "ALL") @docker.start
+            - @(if container != "ALL") @docker.kill
+            - @(if container != "ALL") @docker.start
 
     docker.kill:
-        set:
+        args:
             container: ? "ALL"
         do: |
             $(docker.cmd) rm -f $(container == "ALL" ? docker.container_names : docker.container_name(container)) || true
 
     docker.start:
-        set:
+        args:
             container: ? "ALL"
         do:
-            - ?(container == "ALL") @_docker.start_all
-            - ?(container != "ALL") @_docker.start_container
+            - @(if container == "ALL") @_docker.start_all
+            - @(if container != "ALL") @_docker.start_container
 
     _docker.start_all: |
         set -e;
@@ -92,7 +90,7 @@ tasks:
         done;
 
     _docker.start_container:
-        set:
+        args:
             container: ?
         do: |
 #            cd docker-images;
@@ -109,7 +107,7 @@ tasks:
 
     docker.shell:
         help: Open a shell to a running docker container
-        set:
+        args:
             container: ?
             shell: ? "/bin/bash"
             interactive: true

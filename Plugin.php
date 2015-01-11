@@ -47,15 +47,13 @@ class Plugin extends BasePlugin
 
     public function setContainer(Container $container)
     {
-        $container->method('docker.image', function($c, $containerName) {
+        $container->method('docker.image', function(Container $c, $containerName) {
             return $c->resolve('docker.images.' . $containerName);
         });
-        $container->method('docker.run.ports', function($c, $containerName) {
-            if (!$c->has('docker.ports.' . $containerName)) {
-                return '';
+        $container->method('docker.run.ports', function(Container $c, $containerName) {
+            if ($val = $c->resolve('docker.ports.' . $containerName)) {
+                return ' -p ' . $val . ':' . $val;
             }
-            $val = $c->resolve('docker.ports.' . $containerName);
-            return ' -p ' . $val . ':' . $val;
         });
         $container->method('docker.run.links', function($c, $containerName) {
             if (!$c->has('docker.links.' . $containerName)) {
@@ -72,13 +70,12 @@ class Plugin extends BasePlugin
             return $ret;
         });
         $container->method('docker.run.volumes', function($c, $containerName) {
-            if (!$c->has('docker.volumes.'. $containerName)) {
-                return '';
-            }
             $ret = '';
             $volume = $c->resolve('docker.volumes.' . $containerName, false);
-            foreach ($volume as $l) {
-                $ret .= sprintf(' -v %s:%s', $l, $l);
+            if ($volume) {
+                foreach ($volume as $l) {
+                    $ret .= sprintf(' -v %s:%s', $l, $l);
+                }
             }
             return $ret;
         });
