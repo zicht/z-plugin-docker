@@ -55,14 +55,15 @@ class Plugin extends BasePlugin
                 return ' -p ' . $val . ':' . $val;
             }
         });
-        $container->method('docker.run.links', function($c, $containerName) {
+        $container->method('docker.run.links', function(Container $c, $containerName) {
             if (!$c->has('docker.links.' . $containerName)) {
                 return '';
             }
             $ret = '';
+
             $links = array_intersect(
-                $c->resolve('docker.containers'),
-                $c->resolve('docker.links.' . $containerName, false)
+                $c->get(array('docker', 'containers')),
+                $c->get(array('docker', 'links', $containerName)) ?: array()
             );
             foreach ($links as $l) {
                 $ret .= sprintf(' --link %s:%s', $l, $l);
