@@ -1,6 +1,6 @@
 {
-    "name": "zicht/z-plugin-deploy",
-    "description": "Deploy plugin for Z",
+    "name": "zicht/z-plugin-docker",
+    "description": "Docker plugin for Z",
     "license": "MIT",
     "authors": [
         {
