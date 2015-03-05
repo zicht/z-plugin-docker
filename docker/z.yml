@@ -87,11 +87,8 @@ tasks:
             - @(if container != "ALL") @_docker.start_container
 
     _docker.start_all: |
-        @(for name in docker.container_names
-        set -e;
-        for i in $(docker.container_names); do
-          z $(z.opts) docker:start $i
-        done;
+        @(for name in docker.container_names)
+            z $(z.opts) docker:start $(name)
 
     _docker.start_container:
         args:
@@ -114,6 +111,5 @@ tasks:
         args:
             container: ?
             shell: ? "/bin/bash"
-            interactive: true
         do:
-            - $(docker.cmd) exec -ti $(container) "/bin/bash"
+            - @(with true as INTERACTIVE) $(docker.cmd) exec -ti $(container) "/bin/bash"
