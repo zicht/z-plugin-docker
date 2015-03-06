@@ -43,8 +43,7 @@ tasks:
             - '[ -d $(docker.image_dir) ] || mkdir $(docker.image_dir)'
         do: |
             @(for image in images)
-            @(if FORCE || !is_dir(cat(docker.image_dir, "/", image)))
-                cp -rv $(docker.image_source)/$(image) $(docker.image_dir)/$(image)
+                rsync -an --delete $(docker.image_source)/$(image)/ $(docker.image_dir)/$(image)/
 
     docker.rebuild:
         help: |
