@@ -86,7 +86,7 @@ class Plugin extends BasePlugin
         $container->decl('docker.container_names', function ($c) {
             $ret = array();
             foreach ($c->resolve('docker.containers') as $containerName) {
-                $ret[]= $c->call('docker.container_name', $containerName);
+                $ret[]= $c->call($c->resolve(array('docker', 'container_name')), $containerName);
             }
             return $ret;
         });
