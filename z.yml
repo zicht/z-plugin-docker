@@ -1,7 +1,5 @@
 docker:
     cmd:            sudo docker
-#    image_source:   ~
-#    image_dir:      ~
     images:
         mysql:      mysql
         redis:      redis
@@ -43,7 +41,7 @@ tasks:
             - '[ -d $(docker.image_dir) ] || mkdir $(docker.image_dir)'
         do: |
             @(for image in images)
-                rsync -an --delete $(docker.image_source)/$(image)/ $(docker.image_dir)/$(image)/
+                rsync -a --delete $(docker.image_source)/$(image)/ $(docker.image_dir)/$(image)/
 
     docker.rebuild:
         help: |
