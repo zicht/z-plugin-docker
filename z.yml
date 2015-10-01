@@ -27,21 +27,13 @@ docker:
 tasks:
     docker.image:
         help: |
-            Copies image source files from the docker.image_source location, so they are ready to build.
-
-            The purpose of copying the image files is hooking in intermediate scripts that alter the Dockerfile or
-            the assets of the images. You can use this to add your custom config files, e.g.:
-
-                docker.image:
-                    post:
-                        - @(if image == "varnish") cp etc/varnish/default.vcl >> $(docker.image_dir)/etc/varnish/default.vcl
+            Copies image source files from the docker.image_source location to the docker.image_dir directory.
+            This way you can use these base images for creating your own docker configuration.
         args:
             images[]: ? docker.containers
-        pre:
-            - '[ -d $(docker.image_dir) ] || mkdir $(docker.image_dir)'
         do: |
             @(for image in images)
-                rsync -a --delete $(docker.image_source)/$(image)/ $(docker.image_dir)/$(image)/
+                [ -d "$(docker.image_dir)/$(image)" ] || rsync -a --delete $(docker.image_source)/$(image)/ $(docker.image_dir)/$(image)/
 
     docker.rebuild:
         help: |
