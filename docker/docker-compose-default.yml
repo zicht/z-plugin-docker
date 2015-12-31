@@ -1,0 +1,40 @@
+nginx:
+  build: images/nginx
+  command: /root/start
+  ports:
+    - "80:80"
+  links:
+    - php5_fpm
+  volumes:
+    - "/var/www:/var/www"
+    - "/home:/home"
+
+php5_fpm:
+  build: images/php5_fpm
+  command: /root/start
+  links:
+    - mysql
+    - redis
+  volumes:
+    - "/var/www:/var/www"
+    - "/home:/home"
+
+mysql:
+  build: images/mysql
+  command: /root/start
+  ports:
+    - "3306:3306"
+
+varnish:
+  build: images/varnish
+  command: /root/start
+  links:
+    - nginx
+  ports:
+    - "81:81"
+
+redis:
+  build: images/redis
+  command: /root/start
+  ports:
+    - "6379:6379"
