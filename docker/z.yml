@@ -58,7 +58,7 @@ tasks:
         args:
             container: ?
         do:
-            - @(with [container] as images) @docker.rebuild
+#            - @(with [container] as images) @docker.rebuild
             - @docker.kill
             - @docker.start
 
