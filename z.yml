@@ -1,104 +1,56 @@
 docker:
-    cmd:            sudo docker
-    images:
-        mysql:      mysql
-        redis:      redis
-        solr:       solr
-        php5_fpm:   php5_fpm
-        nginx:      nginx
-        varnish:    varnish
-    containers: []
-    ports:
-        mysql:      3306
-        redis:      6379
-        solr:       8983
-        varnish:    81
-        nginx:      80
-
-    links:
-        php5_fpm:   ['mysql', 'redis', 'solr']
-        nginx:      ['php5_fpm']
-        varnish:    ['nginx']
-
-    volumes:
-        php5_fpm:   [/var/www, /home]
-        nginx:      [/var/www, /home]
+    defaults:
+        compose:
+            name: local
+#            file: ~
 
 tasks:
-    docker.image:
-        help: |
-            Copies image source files from the docker.image_source location to the docker.image_dir directory.
-            This way you can use these base images for creating your own docker configuration.
+    # We need this for more than command, so use YML "inheritance" here.
+    _docker.settings: &DOCKER_SETTINGS
+        opts:
+            default: docker.defaults.compose.file
+            name: docker.defaults.compose.name
+        set:
+            _cmd: |
+                cat(
+                    "sudo COMPOSE_PROJECT_NAME=", name, " docker-compose ",
+                    !is_file(cat(cwd, "/docker-compose.yml"))
+                    ? cat(" -f ", default)
+                    : ""
+                )
+    docker.up:
+        <<: *DOCKER_SETTINGS
+        flags:
+            kill: false
+            up: true
+            bg: true
         args:
-            images[]: ? docker.containers
-        do: |
-            @(for image in images)
-                [ -d "$(docker.image_dir)/$(image)" ] || rsync -a --delete $(docker.image_source)/$(image)/ $(docker.image_dir)/$(image)/
-
-    docker.rebuild:
-        help: |
-            Rebuild images from the image source files
-
-            You can pass the --force to force the images to be recopied.
-        args:
-            images[]: ? docker.containers
+            container: ? ""
         pre:
-            - @docker.image
-        do: |
-            @(for image in images)
-                $(docker.cmd) build -t $(image) $(docker.image_dir)/$(image);
-
-    docker.restart:
-        args:
-            containers[]: ? docker.containers
+            - sudo rm /var/www/localhost && ln $(VERBOSE ? "-v") -sf $(cwd)/$(is_dir("web") ? "web/") /var/www/localhost;
         do:
-            - @(for container in containers) @_docker.restart
+            - @(if kill) $(_cmd) kill $(container)
+            - @(if up)   $(_cmd) up $(bg ? "-d") $(container)
 
-    _docker.restart:
+    docker.build:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Builds the containers specified in the compose file
         args:
-            container: ?
-        do:
-#            - @(with [container] as images) @docker.rebuild
-            - @docker.kill
-            - @docker.start
+            container: ? ""
+        do: $(_cmd) build $(container)
 
-    docker.kill:
+    docker.sh:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Opens a shell to a running container
         args:
-            container: ? "ALL"
-        do: |
-            $(docker.cmd) rm -f $(container == "ALL" ? docker.container_names : docker.container_name(container)) || true
+            container: ? ""
+            index: "1"
+        do: @(with true as INTERACTIVE) sudo docker exec -ti $(name)_$(container)_$(index) "/bin/bash"
 
-    docker.start:
-        args:
-            container: ? "ALL"
-        do:
-            - @(if container == "ALL") @_docker.start_all
-            - @(if container != "ALL") @_docker.start_container
-
-    _docker.start_all: |
-        @(for name in docker.container_names)
-            z $(z.opts) docker:start $(name)
-
-    _docker.start_container:
-        args:
-            container: ?
-        do: |
-#            cd docker-images;
-            $(docker.cmd) run \
-                $(docker.run.ports container)   \
-                $(docker.run.links container)   \
-                $(docker.run.volumes container) \
-                --name "$(docker.container_name container)"           \
-                -d                              \
-                $(docker.image container)
-
-    docker.status:
-        - $(docker.cmd) inspect --format '{{ .Name }} {{ .NetworkSettings.IPAddress }}' $(docker.container_names) | column -t
-
-    docker.shell:
-        help: Open a shell to a running docker container
-        args:
-            container: ?
-            shell: ? "/bin/bash"
-        do:
-            - @(with true as INTERACTIVE) $(docker.cmd) exec -ti $(container) "/bin/bash"
+    docker.ps:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Show running processes
+        do: $(_cmd) ps

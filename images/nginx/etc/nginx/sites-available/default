@@ -10,14 +10,6 @@ server {
         try_files $uri $uri/ /index.php?$args;
     }
 
-    location /redirect.php {
-        rewrite .* /redirect.php;
-    }
-
-#   location /tickets/ {
-#       try_files $uri $uri/ /tickets/index.php?$args;
-#   }
-
     location ~ \.php$ {
         fastcgi_pass php5_fpm:9000;
         fastcgi_index index.php;
