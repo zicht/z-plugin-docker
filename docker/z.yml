@@ -20,6 +20,8 @@ tasks:
                 )
     docker.up:
         <<: *DOCKER_SETTINGS
+        help: |
+            Put all containers for the local docker config up.
         flags:
             kill: false
             up: true
