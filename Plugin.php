@@ -33,6 +33,7 @@ class Plugin extends BasePlugin
                                 ->end()
                             ->end()
                         ->end()
+                        ->arrayNode('containers')->prototype('scalar')->end()->end()
                     ->end()
                 ->end()
             ->end()
