@@ -1,7 +1,0 @@
-#!/bin/bash
-
-cd /opt/solr*/example && java -jar start.jar
-
-while [ true ]; do
-	sleep 365d
-done
