@@ -29,7 +29,8 @@ tasks:
         args:
             container: ? ""
         pre:
-            - sudo rm /var/www/localhost && ln $(VERBOSE ? "-v") -sf $(cwd)/$(is_dir("web") ? "web/") /var/www/localhost;
+            - if [ -e /var/www/localhost ]; then sudo rm /var/www/localhost; fi
+            - sudo ln $(VERBOSE ? "-v") -sf $(cwd)/$(is_dir("web") ? "web/") /var/www/localhost;
         do:
             - @(if kill) $(_cmd) kill $(container)
             - @(if up)   $(_cmd) up $(bg ? "-d") $(container)
