@@ -29,6 +29,7 @@ RUN chmod +x /root/start
 
 ADD etc/php5/fpm/pool.d/www.conf    /etc/php5/fpm/pool.d/www.conf
 ADD etc/php5/conf.d/40-commons.ini  /etc/php5/conf.d/40-commons.ini
+ADD etc/php5/conf.d/40-commons.ini  /etc/php5/fpm/conf.d/40-commons.ini
 
 CMD ["/root/start"]
 
