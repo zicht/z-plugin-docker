@@ -57,3 +57,13 @@ tasks:
         help: |
             Show running processes
         do: $(_cmd) ps
+
+    docker.ips:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Dump a list of IPS per service as yml
+        do: |
+            echo "parameters:"
+            for id in $$($(_cmd) ps -q); do
+                docker inspect --format '   {{ index .Config.Labels "com.docker.compose.service" }}_host: {{ .NetworkSettings.IPAddress }}' $id;
+            done;
