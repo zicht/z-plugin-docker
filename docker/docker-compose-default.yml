@@ -1,40 +1,33 @@
 nginx:
-  build: images/nginx
-  command: /root/start
+  image: 'docker.zicht.nl:443/nginx'
   ports:
     - "80:80"
   links:
     - php5_fpm
   volumes:
-    - "/var/www:/var/www"
-    - "/home:/home"
+    - "${PWD}:/opt/app"
 
 php5_fpm:
-  build: images/php5_fpm
-  command: /root/start
+  image: 'docker.zicht.nl:443/php56-fpm'
   links:
     - mysql
     - redis
   volumes:
-    - "/var/www:/var/www"
-    - "/home:/home"
+    - "${PWD}:/opt/app"
 
 mysql:
-  build: images/mysql
-  command: /root/start
+  image: 'docker.zicht.nl:443/mysql'
   ports:
     - "3306:3306"
 
 varnish:
-  build: images/varnish
-  command: /root/start
+  image: 'docker.zicht.nl:443/varnish3'
   links:
     - nginx
   ports:
     - "81:81"
 
 redis:
-  build: images/redis
-  command: /root/start
+  image: 'docker.zicht.nl:443/redis'
   ports:
     - "6379:6379"

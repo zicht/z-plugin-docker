@@ -13,7 +13,7 @@ tasks:
         set:
             _cmd: |
                 cat(
-                    "sudo COMPOSE_PROJECT_NAME=", name, " docker-compose ",
+                    "sudo PWD=", cwd, " COMPOSE_PROJECT_NAME=", name, " docker-compose ",
                     !is_file(cat(cwd, "/docker-compose.yml"))
                     ? cat(" -f ", default)
                     : ""
@@ -34,6 +34,12 @@ tasks:
         do:
             - @(if kill) $(_cmd) kill $(container)
             - @(if up)   $(_cmd) up $(bg ? "-d") $(container)
+
+    docker.logs:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Show log output of the dockers
+        do: $(_cmd) logs 
 
     docker.build:
         <<: *DOCKER_SETTINGS
