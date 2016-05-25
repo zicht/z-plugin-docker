@@ -1,7 +1,0 @@
-#!/bin/bash
-
-/etc/init.d/varnish restart
-
-while [ true ]; do
-	sleep 365d
-done

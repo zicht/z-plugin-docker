@@ -1,7 +1,0 @@
-#!/bin/bash
-
-/etc/init.d/redis-server restart
-
-while [ true ]; do
-	sleep 365d
-done
