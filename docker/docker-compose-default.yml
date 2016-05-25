@@ -6,14 +6,17 @@ nginx:
     - php5_fpm
   volumes:
     - "${PWD}:/opt/app"
+    - "${PWD}:${PWD}"
 
 php5_fpm:
   image: 'docker.zicht.nl:443/php56-fpm'
   links:
     - mysql
     - redis
+    - solr
   volumes:
     - "${PWD}:/opt/app"
+    - "${PWD}:${PWD}"
 
 mysql:
   image: 'docker.zicht.nl:443/mysql'
@@ -31,3 +34,10 @@ redis:
   image: 'docker.zicht.nl:443/redis'
   ports:
     - "6379:6379"
+
+solr:
+  image: 'docker.zicht.nl:443/solr5'
+  ports:
+    - "8983:8983"
+  volumes:
+    - "${PWD}/etc/solr/conf:/var/solr/core/conf"
