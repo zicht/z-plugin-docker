@@ -11,12 +11,14 @@ tasks:
             default: docker.defaults.compose.file
             name: docker.defaults.compose.name
         set:
+            _local_file: |
+                cat(cwd, "/docker-compose.yml")
+            _used_file: |
+                is_file(_local_file) ? _local_file : default
             _cmd: |
                 cat(
                     "sudo PWD=", cwd, " COMPOSE_PROJECT_NAME=", name, " docker-compose ",
-                    !is_file(cat(cwd, "/docker-compose.yml"))
-                    ? cat(" -f ", default)
-                    : ""
+                    cat(" -f ", _used_file)
                 )
     docker.up:
         <<: *DOCKER_SETTINGS
@@ -73,3 +75,19 @@ tasks:
             for id in $$($(_cmd) ps -q); do
                 sudo docker inspect --format '   {{ index .Config.Labels "com.docker.compose.service" }}_host: {{ .NetworkSettings.IPAddress }}' $id;
             done;
+
+    docker.info:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Shows some useful information about the current docker setup
+        do: 
+            - |
+                echo "Command used: $(_cmd)"
+            - |
+                $(z.cmd) $(z.opts) docker:ps
+            - |
+                echo "YAML config:"
+                echo $(_used_file)
+            - |
+                @(if VERBOSE) 
+                cat $(_used_file)
