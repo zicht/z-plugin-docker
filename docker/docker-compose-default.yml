@@ -22,10 +22,18 @@ php5_fpm:
 
 mysql:
   privileged: true
-  image: 'docker.zicht.nl:443/mysql'
+  image: mysql:5.5
   ports:
     - "3306:3306"
-
+  volumes:
+      - "${PWD}/.data/db:/var/lib/mysql"
+  restart: always
+  environment:
+      MYSQL_ROOT_PASSWORD: dev
+      MYSQL_DATABASE: dev
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev
+      
 varnish:
   privileged: true
   image: 'docker.zicht.nl:443/varnish3'
