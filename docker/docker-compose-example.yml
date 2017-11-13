@@ -9,9 +9,11 @@ nginx:
     - "${PWD}:/opt/app"
     - "${PWD}:${PWD}"
 
+# name this php5_fpm because the nginx-docker expects exactly this name.
 php5_fpm:
   privileged: true
   image: 'docker.zicht.nl:443/php56-fpm'
+  #image: 'docker.zicht.nl:443/php7-fpm'
   links:
     - mysql
     - redis
