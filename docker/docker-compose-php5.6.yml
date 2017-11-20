@@ -1,0 +1,45 @@
+nginx:
+  image: 'docker.zicht.nl/nginx:1.12'
+  ports:
+    - "80:80"
+  links:
+    - php_fpm
+  volumes:
+    - "${PWD}:/opt/app"
+    - "${PWD}:${PWD}"
+
+php_fpm:
+  image: 'docker.zicht.nl/php-fpm:5.6'
+  links:
+    - mysql
+    - redis
+    - solr
+  volumes:
+    - "${PWD}:/opt/app"
+    - "${PWD}:${PWD}"
+
+mysql:
+  image: 'docker.zicht.nl/mysql:5.5'
+  ports:
+    - "3306:3306"
+  volumes:
+    - ./data/mysql:/var/lib/mysql:rw
+
+varnish:
+  image: 'docker.zicht.nl/varnish3'
+  links:
+    - nginx
+  ports:
+    - "81:81"
+
+redis:
+  image: 'docker.zicht.nl/redis'
+  ports:
+    - "6379:6379"
+
+solr:
+  image: 'docker.zicht.nl/solr5'
+  ports:
+    - "8983:8983"
+  volumes:
+    - "${PWD}/etc/solr/conf:/var/solr/core/conf"
