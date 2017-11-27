@@ -9,7 +9,7 @@ The `-p` provides a prefix so all images are prefixed with `local_`. This is con
 
 * `z docker:shell php_fpm`
 
-`sudo docker exec -ti local_php_fpm_1 "/bin/bash"`
+`docker exec -ti local_php_fpm_1 "/bin/bash"`
 
 The `local_` prefix is here visible.
 
