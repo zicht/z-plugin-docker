@@ -23,26 +23,24 @@ mysql:
   ports:
     - "3306:3306"
   volumes:
-    - ./data/mysql:/var/lib/mysql:rw
-      
+    - "${PWD}/data/mysql:/var/lib/mysql"
+
 varnish:
-  privileged: true
-  image: 'docker.zicht.nl/varnish3'
+  image: 'docker.zicht.nl:443/varnish3'
   links:
     - nginx
   ports:
     - "81:81"
 
 redis:
-  privileged: true
-  image: 'docker.zicht.nl/redis'
+  image: 'docker.zicht.nl:443/redis'
   ports:
     - "6379:6379"
 
 solr:
-  privileged: true
-  image: 'docker.zicht.nl/solr5'
+  image: 'docker.zicht.nl:443/solr5'
   ports:
     - "8983:8983"
   volumes:
-    - "${PWD}/etc/solr:/opt/solr-5.5.1/server/solr/core"
+    - "${PWD}/etc/solr/conf:/var/solr/core/conf"
+    - "${PWD}/data/solr:/var/solr/core/data"
