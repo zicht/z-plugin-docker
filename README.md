@@ -11,7 +11,7 @@ The `-p` provides a prefix so all images are prefixed with `local_`. This is con
 
 `docker exec -ti local_php_fpm_1 "/bin/bash"`
 
-The `local_` prefix is here visible.
+Here you see the usage of the `local_` prefix.
 
 # Docker plugin for `zicht/z` 
 
