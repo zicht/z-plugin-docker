@@ -8,7 +8,7 @@ This can be done by `docker-compose up -d`
 
 * `z docker:shell php_fpm`
 
-`docker exec -ti php_fpm "/bin/bash"`
+`docker-compose exec php_fpm sh`
 
 # Docker plugin for `zicht/z` 
 
