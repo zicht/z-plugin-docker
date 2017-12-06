@@ -10,6 +10,4 @@ Choose between Added, Changed, Deprecated, Removed, Fixed or Security.
 ### Deprecated
 - This plugin has now been marked deprecated in favor of using `docker-compose` and `docker` directly, to create more awareness of what is actually going on.
 ### Removed
-- The default docker-compose. A docker-compose file is now expected to be set specifically in your project. 
-### Added
-- Examples for docker-compose files regarding php 5.6 and 7.1, with sane defaults for mysql, nginx and other packages.
+- The default docker-compose. A docker-compose file is now expected to be set specifically in your project.
