@@ -4,14 +4,11 @@ Replace the commands in the plugin by using `docker-compose` (https://github.com
 
 * `z docker:up`
  
-This can be done by `docker-compose -p local up -d`
-The `-p` provides a prefix so all images are prefixed with `local_`. This is convenient when you want to alias certain `docker exec` calls to an image.
+This can be done by `docker-compose up -d`
 
 * `z docker:shell php_fpm`
 
-`docker exec -ti local_php_fpm_1 "/bin/bash"`
-
-Here you see the usage of the `local_` prefix.
+`docker exec -ti php_fpm "/bin/bash"`
 
 # Docker plugin for `zicht/z` 
 
