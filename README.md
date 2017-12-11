@@ -4,8 +4,6 @@ Replace the commands in the plugin by using `docker-compose` (https://github.com
 
 * `z docker:up` => `docker-compose up -d`
 
-* `z docker:shell php_fpm` => `docker-compose exec php_fpm sh`
-
 Examples of docker-compose files are available in https://github.com/zicht/docker/tree/master/_project_templates
 
 # Docker plugin for `zicht/z` 
