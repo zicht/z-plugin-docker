@@ -1,4 +1,7 @@
 docker:
+    versions:
+        php: 5.6
+        composer: 1.2.2
     defaults:
         compose:
             name: local
@@ -10,6 +13,8 @@ tasks:
         opts:
             default: docker.defaults.compose.file
             name: docker.defaults.compose.name
+            php_version: docker.versions.php
+            composer_version: docker.versions.composer
         set:
             _local_file: |
                 cat(cwd, "/docker-compose.yml")
@@ -76,6 +81,34 @@ tasks:
                 sudo docker inspect --format '   {{ index .Config.Labels "com.docker.compose.service" }}_host: {{ .NetworkSettings.IPAddress }}' $id;
             done;
 
+    docker.composer:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Run composer in a docker container.
+        args:
+            myargs[]: ? ""
+        do: |
+            @(with true as INTERACTIVE)
+            echo Running command \"composer $(myargs)\" on docker.zicht.nl/php-composer:$(php_version)-$(composer_version) && \
+            docker run --tty \
+            --add-host=packages.dev3.zicht.intern:192.168.90.23 \
+            --add-host=satis.dev3.intern:192.168.90.23 \
+            --add-host=remote.satis.dev3.intern:192.168.90.23 \
+            --add-host=remote.satis.dev3.zicht.intern:192.168.90.23 \
+            --add-host=packagist.zicht.intern:192.168.90.10 \
+            --interactive \
+            --rm \
+            --user $$(id -u):$$(id -g) \
+            --volume /home/$$(whoami)/.ssh:/home/$$(whoami)/.ssh:ro \
+            --volume /etc/passwd:/etc/passwd:ro \
+            --volume /etc/group:/etc/group:ro \
+            --volume $$(pwd):/app \
+            --volume $$(pwd):$$(pwd) \
+            --volume /home/$$(whoami)/.gitconfig:/home/$$(whoami)/.gitconfig \
+            --volume $$SSH_AUTH_SOCK:/ssh-auth.sock \
+            --env SSH_AUTH_SOCK=/ssh-auth.sock \
+            --env APPLICATION_ENV=development \
+            docker.zicht.nl/php-composer:$(php_version)-$(composer_version) $(myargs)
     docker.info:
         <<: *DOCKER_SETTINGS
         help: |
