@@ -1,4 +1,7 @@
 docker:
+    dependencies:
+        php: 7.1
+        composer: 1.6.3
     defaults:
         compose:
             name: local
@@ -37,7 +40,7 @@ tasks:
         <<: *DOCKER_SETTINGS
         help: |
             Show log output of the dockers
-        do: $(_cmd) logs 
+        do: $(_cmd) logs
 
     docker.build:
         <<: *DOCKER_SETTINGS
@@ -72,11 +75,57 @@ tasks:
                 sudo docker inspect --format '   {{ index .Config.Labels "com.docker.compose.service" }}_host: {{ .NetworkSettings.IPAddress }}' $id;
             done;
 
+    docker.test:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Run a console command inside the php-fpm container.
+        args:
+            all: ?
+        do: @(with true as INTERACTIVE) echo "$(all)"
+
+
+    docker.console:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Run a console command inside the php-fpm container.
+        args:
+            all: ? ""
+        do: @(with true as INTERACTIVE) docker-compose exec php_fpm env PHP_IDE_CONFIG="serverName=app" php -d xdebug.remote_host=172.17.0.1 app/console --env=development $(all ? all : "")
+
+    docker.composer:
+        <<: *DOCKER_SETTINGS
+        help: |
+            Run composer
+        args:
+            all: ? ""
+        do: |
+          @(with true as INTERACTIVE)
+          echo "Running on docker.zicht.nl/php-composer:$(docker.dependencies.php)-$(docker.dependencies.composer)"
+          docker run -m=2g \
+          --add-host=packages.dev3.zicht.intern:192.168.90.23 \
+          --add-host=satis.dev3.intern:192.168.90.23 \
+          --add-host=remote.satis.dev3.intern:192.168.90.23 \
+          --add-host=remote.satis.dev3.zicht.intern:192.168.90.23 \
+          --add-host=packagist.zicht.intern:192.168.90.10 \
+          --interactive \
+          --rm \
+          --user $$(id -u):$$(id -g) \
+          --volume /home/$$(whoami)/.ssh:/home/$$(whoami)/.ssh:ro \
+          --volume /etc/passwd:/etc/passwd:ro \
+          --volume /etc/group:/etc/group:ro \
+          --volume $$(pwd):/app \
+          --volume $$(pwd):$$(pwd) \
+          --volume /home/$$(whoami)/.gitconfig:/home/$$(whoami)/.gitconfig \
+          --volume $SSH_AUTH_SOCK:/ssh-auth.sock \
+          --env SSH_AUTH_SOCK=/ssh-auth.sock \
+          --env APPLICATION_ENV=development \
+          docker.zicht.nl/php-composer:$(docker.dependencies.php)-$(docker.dependencies.composer) "$(all ? all : "")"
+
     docker.info:
         <<: *DOCKER_SETTINGS
         help: |
             Shows some useful information about the current docker setup
-        do: 
+        do:
             - |
                 echo "Command used: $(_cmd)"
             - |
@@ -85,5 +134,5 @@ tasks:
                 echo "YAML config:"
                 echo $(_local_file)
             - |
-                @(if VERBOSE) 
+                @(if VERBOSE)
                 cat $(_local_file)
