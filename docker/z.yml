@@ -75,15 +75,6 @@ tasks:
                 sudo docker inspect --format '   {{ index .Config.Labels "com.docker.compose.service" }}_host: {{ .NetworkSettings.IPAddress }}' $id;
             done;
 
-    docker.test:
-        <<: *DOCKER_SETTINGS
-        help: |
-            Run a console command inside the php-fpm container.
-        args:
-            all: ?
-        do: @(with true as INTERACTIVE) echo "$(all)"
-
-
     docker.console:
         <<: *DOCKER_SETTINGS
         help: |
@@ -92,16 +83,48 @@ tasks:
             all: ? ""
         do: @(with true as INTERACTIVE) docker-compose exec php_fpm env PHP_IDE_CONFIG="serverName=app" php -d xdebug.remote_host=172.17.0.1 app/console --env=development $(all ? all : "")
 
+    docker.composer_install:
+        <<: *DOCKER_SETTINGS
+        args:
+            composer_version: ? docker.dependencies.composer
+        do: |
+          export COMPOSER_DIRECTORY=~/.zicht/composer/$(composer_version)
+
+          if [ -d "$COMPOSER_DIRECTORY" ]; then
+            exit 0;
+          else
+            mkdir -p "$COMPOSER_DIRECTORY"
+            cd "$COMPOSER_DIRECTORY"
+
+            EXPECTED_SIGNATURE="$$(wget -q -O - https://composer.github.io/installer.sig)"
+            $$(which php) -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+            ACTUAL_SIGNATURE="$$($$(which php) -r "echo hash_file('SHA384', 'composer-setup.php');")"
+
+            if [ "$EXPECTED_SIGNATURE" != "$ACTUAL_SIGNATURE" ]
+            then
+                >&2 echo 'ERROR: Invalid installer signature'
+                rm composer-setup.php
+                exit 1
+            fi
+
+            $$(which php) composer-setup.php --quiet --version=$(composer_version) --filename=composer
+            chmod +x "$COMPOSER_DIRECTORY/composer"
+            "$COMPOSER_DIRECTORY/composer" --ansi --version --no-interaction
+            RESULT=$?
+            rm composer-setup.php
+            exit $RESULT
+          fi
+
     docker.composer:
         <<: *DOCKER_SETTINGS
         help: |
             Run composer
         args:
-            all: ? ""
+            all: ? "list"
         do: |
           @(with true as INTERACTIVE)
           echo "Running on docker.zicht.nl/php-composer:$(docker.dependencies.php)-$(docker.dependencies.composer)"
-          docker run -m=2g \
+          docker run -m=4g \
           --add-host=packages.dev3.zicht.intern:192.168.90.23 \
           --add-host=satis.dev3.intern:192.168.90.23 \
           --add-host=remote.satis.dev3.intern:192.168.90.23 \
@@ -119,7 +142,7 @@ tasks:
           --volume $SSH_AUTH_SOCK:/ssh-auth.sock \
           --env SSH_AUTH_SOCK=/ssh-auth.sock \
           --env APPLICATION_ENV=development \
-          docker.zicht.nl/php-composer:$(docker.dependencies.php)-$(docker.dependencies.composer) "$(all ? all : "")"
+          docker.zicht.nl/php-composer:$(docker.dependencies.php)-$(docker.dependencies.composer) --ansi $(all)
 
     docker.info:
         <<: *DOCKER_SETTINGS
