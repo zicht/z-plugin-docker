@@ -1,10 +1,10 @@
 docker:
-    dependencies:
-        php: 7.1
-        composer: 1.6.3
     defaults:
         compose:
             name: local
+    dependencies:
+        composer: 0.0
+        php: 0.0
 
 tasks:
     # We need this for more than command, so use YML "inheritance" here.
@@ -88,9 +88,15 @@ tasks:
         args:
             composer_version: ? docker.dependencies.composer
         do: |
+          if [ $(composer_version) == 0 ]; then
+            >&2 echo 'ERROR: Please add the proper docker dependencies in your z2.yml'
+            exit 1;
+          fi
+
           export COMPOSER_DIRECTORY=~/.zicht/composer/$(composer_version)
 
           if [ -d "$COMPOSER_DIRECTORY" ]; then
+            >&2 echo ">> Composer version $(composer_version) is already present in $COMPOSER_DIRECTORY"
             exit 0;
           else
             mkdir -p "$COMPOSER_DIRECTORY"
@@ -108,10 +114,17 @@ tasks:
             fi
 
             $$(which php) composer-setup.php --quiet --version=$(composer_version) --filename=composer
-            chmod +x "$COMPOSER_DIRECTORY/composer"
-            "$COMPOSER_DIRECTORY/composer" --ansi --version --no-interaction
             RESULT=$?
             rm composer-setup.php
+
+            if [ "$RESULT" == 0 ]
+            then
+              chmod +x "$COMPOSER_DIRECTORY/composer"
+              >&2 echo ">> Composer version $(composer_version) was installed in $COMPOSER_DIRECTORY"
+            else
+              >&2 echo "ERROR: Could not install composer version $(composer_version)."
+              rm -rf "$COMPOSER_DIRECTORY"
+            fi
             exit $RESULT
           fi
 
@@ -123,8 +136,10 @@ tasks:
             all: ? "list"
         do: |
           @(with true as INTERACTIVE)
-          echo "Running on docker.zicht.nl/php-composer:$(docker.dependencies.php)-$(docker.dependencies.composer)"
-          docker run -m=4g \
+          echo "Verifying local installation of composer v$(docker.dependencies.composer)"
+          $(z.cmd) docker:composer-install &&
+          echo "Running on docker.zicht.nl/php-cli:$(docker.dependencies.php) with composer $(docker.dependencies.composer)" &&
+          docker run -m=4g -w /app \
           --add-host=packages.dev3.zicht.intern:192.168.90.23 \
           --add-host=satis.dev3.intern:192.168.90.23 \
           --add-host=remote.satis.dev3.intern:192.168.90.23 \
@@ -140,9 +155,10 @@ tasks:
           --volume $$(pwd):$$(pwd) \
           --volume /home/$$(whoami)/.gitconfig:/home/$$(whoami)/.gitconfig \
           --volume $SSH_AUTH_SOCK:/ssh-auth.sock \
+          --volume /home/$$(whoami)/.zicht/composer/$(docker.dependencies.composer)/composer:/usr/bin/composer \
           --env SSH_AUTH_SOCK=/ssh-auth.sock \
           --env APPLICATION_ENV=development \
-          docker.zicht.nl/php-composer:$(docker.dependencies.php)-$(docker.dependencies.composer) --ansi $(all)
+          docker.zicht.nl/php-cli:$(docker.dependencies.php) /usr/bin/composer --ansi $(all)
 
     docker.info:
         <<: *DOCKER_SETTINGS
