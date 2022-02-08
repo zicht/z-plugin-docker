@@ -30,8 +30,8 @@ tasks:
             - if [ -e /var/www/localhost ]; then sudo rm /var/www/localhost; fi
             - sudo ln $(VERBOSE ? "-v") -sf $(cwd)/$(is_dir("web") ? "web/") /var/www/localhost;
         do:
-            - @(if kill) $(_cmd) kill $(container)
-            - @(if up)   $(_cmd) up $(bg ? "-d") $(container)
+            - '@(if kill) $(_cmd) kill $(container)'
+            - '@(if up)   $(_cmd) up $(bg ? "-d") $(container)'
 
     docker.logs:
         <<: *DOCKER_SETTINGS
@@ -54,7 +54,7 @@ tasks:
         args:
             container: ? ""
             index: "1"
-        do: @(with true as INTERACTIVE) sudo docker exec -ti $(name)_$(container)_$(index) "/bin/bash"
+        do: '@(with true as INTERACTIVE) sudo docker exec -ti $(name)_$(container)_$(index) "/bin/bash"'
 
     docker.ps:
         <<: *DOCKER_SETTINGS
